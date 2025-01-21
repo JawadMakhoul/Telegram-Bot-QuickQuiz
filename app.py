@@ -12,7 +12,7 @@ quiz_table = dynamodb.Table("Quizzes")
 user_table = dynamodb.Table("UserStates")
 
 # Telegram API
-TELEGRAM_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+TELEGRAM_TOKEN = "7467453386:AAEPsIImeqVnwNfeARnSU_WGeqMVtbTqRXM"
 BASE_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/"
 
 # AWS Translate
