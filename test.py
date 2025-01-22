@@ -58,13 +58,13 @@ def send_daily_quiz(event, context):
         return {"statusCode": 200, "body": "No quiz available for today."}
 
     question = quiz_data['question']
-    users = get_all_users_from_telegram()  # Implement logic to fetch all users.
+    #users = get_all_users_from_telegram()  # Implement logic to fetch all users.
 
     # Send the quiz to all users
-    for user in users:
-        send_message(user, f"Today's Quiz: {question}")
+    #for user in users:
+    #    send_message(user, f"Today's Quiz: {question}")
 
-    return {"statusCode": 200, "body": "Quiz sent to all users."}
+    #return {"statusCode": 200, "body": "Quiz sent to all users."}
 
 
 
@@ -90,3 +90,5 @@ def get_secret():
         raise e
 
     secret = get_secret_value_response['SecretString']
+    print(secret)
+    return secret
