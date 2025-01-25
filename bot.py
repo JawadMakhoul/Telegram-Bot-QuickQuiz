@@ -77,12 +77,12 @@ def get_last_quiz_answer(chat_id):
         # Get the last quiz_id for the user
         quiz_id = user_last_quiz.get(chat_id)
         
-        #if not quiz_id:
-            #return "No quiz has been sent to you yet. Please wait for the next quiz."
+        if not quiz_id:
+            return "No quiz has been sent to you yet. Please wait for the next quiz."
 
         # Fetch the quiz from DynamoDB
         
-        quiz_data = quiz_table.get_item(Key={"quiz_id": '1'}).get('question', {})
+        quiz_data = quiz_table.get_item(Key={"quiz_id": quiz_id}).get('question', {})
         
         if quiz_data:
             return f"The answer to your last quiz is: {quiz_data.get('answer', 'No answer available.')}"
