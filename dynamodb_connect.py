@@ -13,7 +13,7 @@ def connect_to_dynamodb():
         response = table.scan()
         items = response['Items']
 
-        print("Items in table:", items)
+        #print("Items in table:", items)
 
     except NoCredentialsError:
         print("No credentials found. Ensure the IAM role is attached to your EC2 instance.")
