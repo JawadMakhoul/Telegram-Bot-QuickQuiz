@@ -1,11 +1,12 @@
 from flask import Flask, request, jsonify, Response
 import requests
 from dynamodb_connect import connect_to_dynamodb  # Your existing file to connect to DynamoDB
+from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)
 
 TOKEN = '7467453386:AAEPsIImeqVnwNfeARnSU_WGeqMVtbTqRXM'
-TELEGRAM_INIT_WEBHOOK_URL = 'https://api.telegram.org/bot{}/setWebhook?url=https://https://8252-2a06-c701-7a9c-3e00-cc5-3b2-1c73-7e42.ngrok-free.app/message'.format(TOKEN)
+TELEGRAM_INIT_WEBHOOK_URL = 'https://api.telegram.org/bot{}/setWebhook?url=https://8252-2a06-c701-7a9c-3e00-cc5-3b2-1c73-7e42.ngrok-free.app/message'.format(TOKEN)
 quiz_table = connect_to_dynamodb()
 
 user_last_quiz = {}
@@ -32,6 +33,8 @@ def handle_message():
             send_telegram_message(chat_id, "Hello! Welcome to the bot. You'll receive a quiz daily!")
         # Handle /getAnswer command
         elif text == '/getanswer':
+            print("testttttttttttttttttttttttttttt")
+            print(chat_id)
             answer = get_last_quiz_answer(chat_id)
             send_telegram_message(chat_id, answer)
         else:
@@ -56,16 +59,17 @@ def send_daily_quiz():
 
         quiz_id = quiz_data['quiz_id']
         question = quiz_data['question']
-        #question = "TEEEEeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeEEST"
+
         # Replace this with your actual user list logic
         all_chat_ids = fetch_all_chat_ids()
 
         for chat_id in all_chat_ids:
             # Send the quiz to the user
             send_telegram_message(chat_id, f"Today's Quiz: {question}")
-
             # Save the last quiz_id for the user
             user_last_quiz[chat_id] = quiz_id
+            print(user_last_quiz[chat_id])
+            print("wwwwwwwwwwwwwwwwwwwwwwwwwwwwww")
     except Exception as e:
         print(f"Error sending daily quiz: {str(e)}")
 
@@ -75,14 +79,15 @@ def get_last_quiz_answer(chat_id):
     """
     try:
         # Get the last quiz_id for the user
-        quiz_id = user_last_quiz.get(chat_id)
         
+        quiz_id = user_last_quiz.get(chat_id) # quiz_id is None it should be 1, chat_id is correct $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+        print(quiz_id)
         if not quiz_id:
             return "No quiz has been sent to you yet. Please wait for the next quiz."
 
         # Fetch the quiz from DynamoDB
         
-        quiz_data = quiz_table.get_item(Key={"quiz_id": quiz_id}).get('question', {})
+        quiz_data = quiz_table.get_item(Key={"quiz_id": quiz_id}).get('Item', {})
         
         if quiz_data:
             return f"The answer to your last quiz is: {quiz_data.get('answer', 'No answer available.')}"
@@ -98,7 +103,7 @@ def fetch_all_chat_ids():
     Retrieve all chat IDs for broadcasting quizzes.
     """
     # Replace this logic with a proper method to retrieve all user chat IDs
-    return ["6553509026", "812149678"]
+    return ["812149678"]
 
 def send_telegram_message(chat_id, text):
     """
@@ -112,6 +117,11 @@ def send_telegram_message(chat_id, text):
         print(f"Failed to send message: {response.text}")
     else:
         print(f"Message sent to chat_id {chat_id}: {text}")
+
+# Initialize APScheduler
+scheduler = BackgroundScheduler()
+scheduler.add_job(send_daily_quiz, 'cron', hour=10, minute=20)  # Schedule at 9:00 AM daily
+scheduler.start()
 
 if __name__ == '__main__':
     app.run(port=5002)
