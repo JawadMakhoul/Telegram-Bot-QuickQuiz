@@ -63,7 +63,11 @@ def handle_message():
             elif text == '/getAnswer':
                 answer = get_last_quiz_answer(chat_id)
                 send_telegram_message(chat_id, answer)
-             
+            
+            elif text == '/exit':
+                send_telegram_message(chat_id, "Farewell! You'll always be welcome here. ❤️")
+                remove_chat_id(chat_id)
+        
             else:
                 result = process_user_answer(chat_id, text)
                 send_telegram_message(chat_id, result)
@@ -250,6 +254,21 @@ def add_chat_id(chat_id):
     except Exception as e:
         print(f"Error adding chat ID: {str(e)}")
 
+def remove_chat_id(chat_id):
+    """
+    Remove a chat ID from the UserChatIDs table.
+    """
+    try:
+        response = chat_ids_table.delete_item(
+            Key={"chat_id": str(chat_id)}
+        )
+
+        response = user_last_quiz.delete_item(
+            Key={"chat_id": str(chat_id)}
+        )
+        print(f"Chat ID {chat_id} removed from the database.")
+    except Exception as e:
+        print(f"Error removing chat ID: {str(e)}")
 
 def fetch_all_chat_ids():
     """
