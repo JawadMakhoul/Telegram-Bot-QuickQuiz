@@ -3,7 +3,7 @@ import requests
 from dynamodb_connect import connect_to_dynamodb_quizTable, connect_to_dynamodb_userLastQuizTable, connect_to_dynamodb_chatIDsTable # Your existing file to connect to DynamoDB
 from apscheduler.schedulers.background import BackgroundScheduler
 import random
-
+import emoji
 app = Flask(__name__)
 
 TOKEN = '7467453386:AAEPsIImeqVnwNfeARnSU_WGeqMVtbTqRXM'
@@ -53,8 +53,10 @@ def handle_message():
 
             if text == '/start':
                 add_chat_id(chat_id)
+                send_telegram_message(chat_id, "Hello! Welcome to the bot. You'll receive a quiz daily!\n Be ready for the welcoming quiz \U0001F603")
                 send_welcome_quiz(chat_id)
-                send_telegram_message(chat_id, "Hello! Welcome to the bot. You'll receive a quiz daily!")
+                result = process_user_answer(chat_id, text)
+                send_telegram_message(chat_id, result)
             elif text == '/getAnswer':
                 answer = get_last_quiz_answer(chat_id)
                 send_telegram_message(chat_id, answer)
@@ -81,7 +83,8 @@ def send_welcome_quiz(chat_id):
         send_telegram_message(
             chat_id,
             f"Welcoming Quiz: {welcome_quiz_question}",
-            include_get_answer_button=True
+            include_get_answer_button=False,
+            include_get_welcoming_answer_button=True
         )
 
         # Track the quiz_id as "welcome" in the user's data
@@ -253,7 +256,7 @@ def fetch_all_chat_ids():
         print(f"Error fetching chat IDs: {str(e)}")
         return []
 
-def send_telegram_message(chat_id, text,include_get_answer_button=False):
+def send_telegram_message(chat_id, text,include_get_answer_button=False, include_get_welcoming_answer_button=False):
     """
     Send a message to the Telegram user.
     """
@@ -266,6 +269,11 @@ def send_telegram_message(chat_id, text,include_get_answer_button=False):
     if include_get_answer_button:
         # Add an inline keyboard with a /getAnswer button
         reply_markup = '{"inline_keyboard": [[{"text": "Get Answer", "callback_data": "/getAnswer"}]]}'
+        payload['reply_markup'] = reply_markup  # Send as a string
+
+    elif include_get_welcoming_answer_button:
+        # Add an inline keyboard with a /getAnswer button
+        reply_markup = '{"inline_keyboard": [[{"text": "Get Answer", "callback_data": "/getWelcomingAnswer"}]]}'
         payload['reply_markup'] = reply_markup  # Send as a string
 
     response = requests.post(url, data=payload)
