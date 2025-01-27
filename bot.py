@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 TOKEN = get_bot_token()
 SUB_TOKEN = TOKEN[8:54]
-TELEGRAM_INIT_WEBHOOK_URL = 'https://api.telegram.org/bot{}/setWebhook?url=https://8252-2a06-c701-7a9c-3e00-cc5-3b2-1c73-7e42.ngrok-free.app/message'.format(SUB_TOKEN)
+TELEGRAM_INIT_WEBHOOK_URL = 'https://api.telegram.org/bot{}/setWebhook?url=https://8252-2a06-c701-7a9c-3e00-cc5-3b2-1c73-7e42.ngrok-free.app/message'.format(TOKEN)
 requests.get(TELEGRAM_INIT_WEBHOOK_URL)
 
 user_last_quiz = {}
