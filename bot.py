@@ -207,7 +207,7 @@ def process_user_answer(chat_id, user_answer):
                 send_animation(chat_id, get_random_gif(WRONG_ANSWER_GIFS))
                 send_telegram_message(
                 chat_id,
-                "Incorrect! You can try again or click the button below to see the correct answer.",
+                "You can try again or click the button below to see the correct answer.",
                 include_get_welcoming_answer_button=True
             )
             return None
@@ -227,7 +227,7 @@ def process_user_answer(chat_id, user_answer):
             send_animation(chat_id, get_random_gif(WRONG_ANSWER_GIFS))
             send_telegram_message(
                 chat_id,
-                "Incorrect! You can try again or click the button below to see the correct answer.",
+                "You can try again or click the button below to see the correct answer.",
                 include_get_answer_button=True
             )
             return None
