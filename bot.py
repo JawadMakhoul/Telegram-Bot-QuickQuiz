@@ -86,7 +86,7 @@ def send_welcome_quiz(chat_id):
     """
     try:
         # Define the fixed welcome quiz
-        welcome_quiz_question = "What is 5 + 3?"
+        welcome_quiz_question = "What is the result of 2³ (2 raised to the power of 3)?"
         welcome_quiz_answer = "8"
 
         
