@@ -205,7 +205,12 @@ def process_user_answer(chat_id, user_answer):
                 return "Correct! Well done! Please wait for tomorrow's quiz!"
             else:
                 send_animation(chat_id, get_random_gif(WRONG_ANSWER_GIFS))
-                return "Incorrect! You can try again or click the button below to see the correct answer."
+                send_telegram_message(
+                chat_id,
+                "Incorrect! You can try again or click the button below to see the correct answer.",
+                include_get_welcoming_answer_button=True
+            )
+            return None
         quiz_data = quiz_table.get_item(Key={"quiz_id": str(quiz_id)}).get('Item', {})
 
         if not quiz_data:
@@ -230,17 +235,7 @@ def process_user_answer(chat_id, user_answer):
         print(f"Error processing user answer: {str(e)}")
         return "An error occurred while processing your answer. Please try again."
     
-def process_welcome_quiz(chat_id, user_answer):
-    """
-    Process the user's answer for the welcome quiz.
-    """
-    correct_answer = "8"  # Predefined answer for the welcome quiz
-    if check_answer(user_answer, correct_answer):
-        send_animation(chat_id, get_random_gif(CORRECT_ANSWER_GIFS))
-        return "Correct! Well done! Please wait for tomorrow's quiz!"
-    else:
-        send_animation(chat_id, get_random_gif(WRONG_ANSWER_GIFS))
-        return "Incorrect! You can try again or click the button below to see the correct answer."
+
     
 def check_answer(user_answer, correct_answer):
     """
