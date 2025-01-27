@@ -4,10 +4,13 @@ from dynamodb_connect import connect_to_dynamodb_quizTable, connect_to_dynamodb_
 from apscheduler.schedulers.background import BackgroundScheduler
 import random
 import emoji
+import boto3
+from botocore.exceptions import NoCredentialsError, PartialCredentialsError, ClientError
 app = Flask(__name__)
 
 TOKEN = '7467453386:AAEPsIImeqVnwNfeARnSU_WGeqMVtbTqRXM'
-TELEGRAM_INIT_WEBHOOK_URL = 'https://api.telegram.org/bot{}/setWebhook?url=https://8252-2a06-c701-7a9c-3e00-cc5-3b2-1c73-7e42.ngrok-free.app/message'.format(TOKEN)
+SUB_TOKEN = TOKEN[8:54]
+TELEGRAM_INIT_WEBHOOK_URL = 'https://api.telegram.org/bot{}/setWebhook?url=https://8252-2a06-c701-7a9c-3e00-cc5-3b2-1c73-7e42.ngrok-free.app/message'.format(SUB_TOKEN)
 requests.get(TELEGRAM_INIT_WEBHOOK_URL)
 
 user_last_quiz = {}
@@ -15,6 +18,29 @@ quiz_table = connect_to_dynamodb_quizTable()
 user_last_quiz = connect_to_dynamodb_userLastQuizTable()  # Connect to the Quiz table
 chat_ids_table = connect_to_dynamodb_chatIDsTable()
 
+def get_secret():
+
+    secret_name = "BotToken"
+    region_name = "us-east-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except ClientError as e:
+        # For a list of exceptions thrown, see
+        # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+        raise e
+
+    secret = get_secret_value_response['SecretString']
+    return secret
 
 @app.route('/message', methods=['GET', 'POST'])
 def handle_message():
