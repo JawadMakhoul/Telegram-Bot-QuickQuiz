@@ -23,4 +23,4 @@ def get_bot_token():
         raise e
 
     secret = get_secret_value_response['SecretString']
-    return secret
+    return secret[8:54]
