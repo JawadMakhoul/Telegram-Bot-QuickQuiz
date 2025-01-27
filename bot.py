@@ -57,6 +57,7 @@ def handle_message():
 
             if text == '/start':
                 add_chat_id(chat_id)
+                send_animation(chat_id, get_random_gif(WELCOME_GIFS))
                 send_telegram_message(chat_id, "Hello! Welcome to the bot. You'll receive a quiz daily!\n Be ready for the welcoming quiz \U0001F603")
                 send_welcome_quiz(chat_id)
                
@@ -65,6 +66,7 @@ def handle_message():
                 send_telegram_message(chat_id, answer)
             
             elif text == '/exit':
+                send_animation(chat_id, get_random_gif(GOODBYE_GIFS))
                 send_telegram_message(chat_id, "Farewell! You'll always be welcome here. ❤️")
                 remove_chat_id(chat_id)
         
@@ -101,6 +103,44 @@ def send_welcome_quiz(chat_id):
     except Exception as e:
         print(f"Error sending welcome quiz: {str(e)}")
 
+CORRECT_ANSWER_GIFS = [
+    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzhvenJuOHVrMWJ1ZHh4NnVxYnI1OXo4cGYzdjdobzk3ZnBzMmdtaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/3rYxjPwF5i9mALN1UM/giphy.gif",
+    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExYndxaXdkZmJ2MGdsZTdkaDI4ZG5zaDJ0ZWw4anVwN2Ywb3JsNm0xayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/5R2YzhtLB1Q7Nf6dyl/giphy.gif",
+    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExbjBuMWtrMjJjYzIxeXFtdXpudThtbXMyZDBkYng0cThnMWcyaWI5aSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/YrMpuzXd1aro5pAHiV/giphy.gif",
+    "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExbG41M2xzM29rbGh1c250em16c25xc3l1dDByMmplZnR4aDN6eW45eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9dg/aG2csyWgGANQsgoeyJ/giphy.gif",
+    "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExenR6eGZtZHFjem1ta2pqZ2V5bGp5ZG9oMjVvbmJ3eWxyMW9yZmxzeCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/STqvaWDhEm5PvwBVat/giphy.gif",
+    "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExbjhocHlnaHU3Y2FuM3Jyd3VmNWM4anRrYnc1bDV3dDRma2xoMG5jcSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/E1np7OHl4btmT7aVEO/giphy.gif",
+    "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExb3RmMnVwd2V1a3J6d3I3YThnY3J3bnRpczB1ZmlmZWg5YXA5bDNjeCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/cegQmGA1XcNH13Zrx7/giphy.gif"
+
+]   
+
+WRONG_ANSWER_GIFS = [
+    "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExa2d1ZjN0aHp0OHYyZWJnYmt0cjF0ZDI2dnRmcGs5cGtqYmNqZnA2MyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/dYrihH20uiozcPFq4E/giphy.gif",
+    "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExYm1ueTV4c2tpcWFpcDRyZ25wZDlkdml1YXZxOGVvYTBycTRlNGV0dSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/fsW9ukNzT99V5TzTx8/giphy.gif",
+    "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjhoOHZldGNhcmFnc2QzdGI0YTZnb2Y4cTIzaWF6ZDd3cGgxN2ZwYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/J4nRh9e7Xrv7D81tvG/giphy.gif",
+    "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjhoOHZldGNhcmFnc2QzdGI0YTZnb2Y4cTIzaWF6ZDd3cGgxN2ZwYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/J4nRh9e7Xrv7D81tvG/giphy.gif",
+    "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExYXVkOHdtd2VkeTJxcTVvZWM3NzBudG82Zm8zMmhwNjFieG82NGxmOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/VJGoS8mjnpHFhAdJiH/giphy.gif",
+    "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExMTJqeHFjY3UxNWE1d2s0eHd5enNvOGNscWVwNmd4dTBsbDlsNWJqYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/NEMM40tpnV6KhMHdZD/giphy.gif",
+    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMHoyMWtqYXp6dHAwNDBhemN6NGxvYnozNDI2OHUya2J3bHJzcXBpcCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/Qv4Fc784YycPcNpy6O/giphy.gif",
+    "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExNzNvamNpZDZsNmxzbjRkNmJpdm5mcjd4ZTcxcW11ZHFjMWVhN2xkdCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/qi5W1VbipdQPiUnvE8/giphy.gif"
+]
+
+GOODBYE_GIFS = [
+    "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExNTBxbmhrZDlvenpucHBnbGlua2QxYWw1aGs0cTY4MXA4cWQzeDA4MCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/UQaRUOLveyjNC/giphy.gif",
+    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHkxa256OHd5bjhoOWxycHdjYjh4bHUyY2E5OTJleG0zeWR0bmw2NiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xUPGcGyYhQTYtDtwBy/giphy.gif",
+    "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExODE1M2p0emM2Zm10OGlsanZsN3dzMXlrOGVtdjk5MmZxb2F6cjhobSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/UWmVAwlUI2MFOGANDA/giphy.gif",
+    "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExYWYzOWFlNnFhZnM3dmpzcTZpdGNodjgwYzYzc2s3cXAxNGwwZW5jbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/12noFudALzfIynHuUp/giphy.gif"
+]
+
+WELCOME_GIFS = [
+    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExZXdyemRtZTV2YWhkcnNyZ3Y5Y2U4YWc3aDR6azZhZmw4MXRhNzg0aiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/mCbUi0FyYhHHhutEV8/giphy.gif",
+    "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExY212Yng4cDAzd2JtYjM2amtzc3ozNWQ3bXIyNnR6cnVhc3o5Mmc1ZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ggtpYV17RP9lTbc542/giphy.gif",
+    "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExa2hrb2ZnNWx1dHA1ZmN2ZnprajlpYXVxN2ZrcGN3ZWxkYTR2M3lhNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l4JyOCNEfXvVYEqB2/giphy.gif"
+]
+
+def get_random_gif(gif_list):
+    return random.choice(gif_list)
+
 def send_animation(chat_id, animation_url):
     """
     Send an animation (GIF) to the Telegram user.
@@ -135,8 +175,10 @@ def process_user_answer(chat_id, user_answer):
         if quiz_id == "0":
             correct_answer = "8"  # Predefined answer for the welcome quiz
             if check_answer(user_answer, correct_answer):
+                send_animation(chat_id, get_random_gif(CORRECT_ANSWER_GIFS))
                 return "Correct! Well done! Please wait for tomorrow's quiz!"
             else:
+                send_animation(chat_id, get_random_gif(WRONG_ANSWER_GIFS))
                 return "Incorrect! You can try again or click the button below to see the correct answer."
         quiz_data = quiz_table.get_item(Key={"quiz_id": str(quiz_id)}).get('Item', {})
 
@@ -147,10 +189,11 @@ def process_user_answer(chat_id, user_answer):
         # Check the user's answer
         if check_answer(user_answer, correct_answer):
             # Send a celebratory animation if the answer is correct
-            animation_url = "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzhvenJuOHVrMWJ1ZHh4NnVxYnI1OXo4cGYzdjdobzk3ZnBzMmdtaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/3rYxjPwF5i9mALN1UM/giphy.gif"  # Replace with your GIF URL
-            send_animation(chat_id, animation_url)
+            
+            send_animation(chat_id, get_random_gif(CORRECT_ANSWER_GIFS))
             return "Correct! Well done! Please wait for tomorrow's quiz!"
         else:
+            send_animation(chat_id, get_random_gif(WRONG_ANSWER_GIFS))
             send_telegram_message(
                 chat_id,
                 "Incorrect! You can try again or click the button below to see the correct answer.",
@@ -167,8 +210,10 @@ def process_welcome_quiz(chat_id, user_answer):
     """
     correct_answer = "8"  # Predefined answer for the welcome quiz
     if check_answer(user_answer, correct_answer):
+        send_animation(chat_id, get_random_gif(CORRECT_ANSWER_GIFS))
         return "Correct! Well done! Please wait for tomorrow's quiz!"
     else:
+        send_animation(chat_id, get_random_gif(WRONG_ANSWER_GIFS))
         return "Incorrect! You can try again or click the button below to see the correct answer."
     
 def check_answer(user_answer, correct_answer):
