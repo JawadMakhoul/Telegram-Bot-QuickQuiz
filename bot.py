@@ -171,20 +171,25 @@ def get_last_quiz_answer(chat_id):
     """
     try:
         # Get the last quiz_id for the user
-        
+        print("qqqqqqqqqqq")
         response = user_last_quiz.get_item(Key={"chat_id": str(chat_id)})
+        print("wwwwwwwwww")
         user_data = response.get('Item', {})
-
+        print("eeeeeeeee")
         if not user_data:
+            print("rrrrrrrrr")
             return "No quiz has been sent to you yet. Please wait for the next quiz."
-
+        print("ttttttttt")
         # Fetch the quiz from DynamoDB
         quiz_id = user_data.get('quiz_id')
+        print("yyyyyyyyy")
         quiz_data = quiz_table.get_item(Key={"quiz_id": str(quiz_id)}).get('Item', {})
-        
+        print("uuuuuuuuuu")
         if quiz_data:
+            print("iiiiiiiiiii")
             return f"The answer to your last quiz is: {quiz_data.get('answer', 'No answer available.')}"
         else:
+            print("oooooooooooo")
             return "Unable to retrieve the quiz answer."
     except Exception as e:
         print(f"Error fetching last quiz answer: {str(e)}")
@@ -246,7 +251,7 @@ def send_telegram_message(chat_id, text,include_get_answer_button=False):
 
 # Initialize APScheduler
 scheduler = BackgroundScheduler()
-scheduler.add_job(send_daily_quiz, 'cron', hour=12, minute=55)  # Schedule at 9:00 AM daily
+scheduler.add_job(send_daily_quiz, 'cron', hour=13, minute=13)  # Schedule at 9:00 AM daily
 scheduler.start()
 
 if __name__ == '__main__':
