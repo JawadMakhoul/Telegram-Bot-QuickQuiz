@@ -18,6 +18,7 @@ chat_ids_table = connect_to_dynamodb_chatIDsTable()
 
 @app.route('/message', methods=['GET', 'POST'])
 def handle_message():
+
     if request.method == 'POST':
         data = request.get_json()
 
@@ -34,6 +35,9 @@ def handle_message():
             if callback_data == '/getAnswer':
                 answer = get_last_quiz_answer(chat_id)
                 send_telegram_message(chat_id, answer)
+
+            elif callback_data == '/getWelcomingAnswer':
+                send_telegram_message(chat_id, "The answer to your last quiz is: 8")
 
             # Acknowledge the callback query
             callback_id = callback_query['id']
@@ -55,11 +59,11 @@ def handle_message():
                 add_chat_id(chat_id)
                 send_telegram_message(chat_id, "Hello! Welcome to the bot. You'll receive a quiz daily!\n Be ready for the welcoming quiz \U0001F603")
                 send_welcome_quiz(chat_id)
-                result = process_user_answer(chat_id, text)
-                send_telegram_message(chat_id, result)
+               
             elif text == '/getAnswer':
                 answer = get_last_quiz_answer(chat_id)
                 send_telegram_message(chat_id, answer)
+             
             else:
                 result = process_user_answer(chat_id, text)
                 send_telegram_message(chat_id, result)
@@ -79,16 +83,16 @@ def send_welcome_quiz(chat_id):
         welcome_quiz_question = "What is 5 + 3?"
         welcome_quiz_answer = "8"
 
+        
         # Send the welcoming quiz question
         send_telegram_message(
             chat_id,
             f"Welcoming Quiz: {welcome_quiz_question}",
-            include_get_answer_button=False,
             include_get_welcoming_answer_button=True
         )
 
         # Track the quiz_id as "welcome" in the user's data
-        user_last_quiz.put_item(Item={"chat_id": chat_id, "quiz_id": "welcome"})
+        user_last_quiz.put_item(Item={"chat_id": str(chat_id), "quiz_id": str(0)})
 
     except Exception as e:
         print(f"Error sending welcome quiz: {str(e)}")
@@ -124,13 +128,12 @@ def process_user_answer(chat_id, user_answer):
 
         # Fetch the correct answer from DynamoDB
         quiz_id = user_data.get('quiz_id')
-        if quiz_id == "welcome":
+        if quiz_id == "0":
             correct_answer = "8"  # Predefined answer for the welcome quiz
             if check_answer(user_answer, correct_answer):
                 return "Correct! Well done! Please wait for tomorrow's quiz!"
             else:
                 return "Incorrect! You can try again or click the button below to see the correct answer."
-
         quiz_data = quiz_table.get_item(Key={"quiz_id": str(quiz_id)}).get('Item', {})
 
         if not quiz_data:
@@ -154,6 +157,16 @@ def process_user_answer(chat_id, user_answer):
         print(f"Error processing user answer: {str(e)}")
         return "An error occurred while processing your answer. Please try again."
     
+def process_welcome_quiz(chat_id, user_answer):
+    """
+    Process the user's answer for the welcome quiz.
+    """
+    correct_answer = "8"  # Predefined answer for the welcome quiz
+    if check_answer(user_answer, correct_answer):
+        return "Correct! Well done! Please wait for tomorrow's quiz!"
+    else:
+        return "Incorrect! You can try again or click the button below to see the correct answer."
+    
 def check_answer(user_answer, correct_answer):
     """
     Check if the user's answer matches the correct answer.
@@ -165,12 +178,6 @@ def check_answer(user_answer, correct_answer):
 
     # Compare the normalized answers
     return normalized_user_answer == normalized_correct_answer
-
-def send_daily_quiz():
-    """
-    Send the daily quiz to all users and store the quiz_id for each user.
-    """
-    import random
 
 def send_daily_quiz():
     """
