@@ -6,24 +6,24 @@ table_name = 'Quiz'  # Replace with your table name
 quiz_table = dynamodb.Table(table_name)
 
 # List of quizzes
-more_quizzes = [
-    {"quiz_id": "21", "question": "What is the hottest planet in the solar system?", "answer": "Venus"},
-    {"quiz_id": "22", "question": "What is the smallest country in the world by area?", "answer": "Vatican City"},
-    {"quiz_id": "23", "question": "How many bones are there in the human body?", "answer": "206"},
-    {"quiz_id": "24", "question": "What is the largest mammal in the world?", "answer": "Blue Whale"},
-    {"quiz_id": "25", "question": "What is the largest land animal?", "answer": "African Elephant"},
-    {"quiz_id": "26", "question": "Which planet is known as the 'Red Planet'?", "answer": "Mars"},
-    {"quiz_id": "27", "question": "Who invented the telephone?", "answer": "Alexander Graham Bell"},
-    {"quiz_id": "28", "question": "What is the longest-running Broadway musical?", "answer": "The Phantom of the Opera"},
-    {"quiz_id": "29", "question": "What is the capital of Australia?", "answer": "Canberra"},
-    {"quiz_id": "30", "question": "In Greek mythology, who is the god of the sea?", "answer": "Poseidon"}
-]
+math_quizzes = [
+        {"quiz_id": "31", "question": "What is the square root of 64?", "answer": "8"},
+        {"quiz_id": "32", "question": "What is 15 × 3?", "answer": "45"},
+        {"quiz_id": "33", "question": "If a triangle has angles of 60° and 60°, what is the third angle?", "answer": "60°"},
+        {"quiz_id": "34", "question": "What is the value of π (pi) rounded to two decimal places?", "answer": "3.14"},
+        {"quiz_id": "35", "question": "Solve: 12 ÷ (3 × 2)", "answer": "2"},
+        {"quiz_id": "36", "question": "What is the perimeter of a square with side length 5?", "answer": "20"},
+        {"quiz_id": "37", "question": "How many degrees are there in a right angle?", "answer": "90°"},
+        {"quiz_id": "38", "question": "Solve: 7² + 4", "answer": "53"},
+        {"quiz_id": "39", "question": "If a rectangle has a length of 10 and a width of 5, what is its area?", "answer": "50"},
+        {"quiz_id": "40", "question": "What is the factorial of 4 (4!)?", "answer": "24"}
+    ]
 
 # Batch write function
 def batch_write_quizzes():
     try:
         with quiz_table.batch_writer() as batch:
-            for quiz in more_quizzes:
+            for quiz in math_quizzes:
                 batch.put_item(Item=quiz)
                 print(f"Added quiz: {quiz['quiz_id']}")
         print("All quizzes added successfully.")
