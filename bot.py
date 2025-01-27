@@ -91,7 +91,7 @@ def send_welcome_quiz(chat_id):
         # Send the welcoming quiz question
         send_telegram_message(
             chat_id,
-            f"Welcoming Quiz: {welcome_quiz_question}",
+            f"Welcoming Quiz: {welcome_quiz_question}\n\nIf you ever feel like leaving the bot, you can click on /exit. We'll miss you dearly. 😢",
             include_get_welcoming_answer_button=True
         )
 
@@ -206,7 +206,7 @@ def send_daily_quiz():
 
         for chat_id in all_chat_ids:
             # Send the quiz to the user
-            send_telegram_message(chat_id, f"Today's Quiz: {question}", include_get_answer_button=True)
+            send_telegram_message(chat_id, f"Today's Quiz: {question} \n\nIf you ever feel like leaving the bot, you can click on /exit. We'll miss you dearly. 😢", include_get_answer_button=True)
             
             # Update the user's last sent quiz ID in the database
             user_last_quiz.put_item(Item={"chat_id": chat_id, "quiz_id": str(quiz_id)})
