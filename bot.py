@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, Response
 import requests
 from dynamodb_connect import connect_to_dynamodb_quizTable, connect_to_dynamodb_userLastQuizTable, connect_to_dynamodb_chatIDsTable # Your existing file to connect to DynamoDB
 from apscheduler.schedulers.background import BackgroundScheduler
+import random
 
 app = Flask(__name__)
 
@@ -20,54 +21,74 @@ def handle_message():
     if request.method == 'POST':
         data = request.get_json()
 
-        # Validate incoming data
-        if not data or 'message' not in data:
-            return Response("Invalid request", status=400)
+        # Debug log to inspect incoming data
+        print(f"Incoming update: {data}")
 
-        chat_id = data['message']['chat']['id']
-        text = data['message'].get('text', '').strip().lower()
+        # Check if the update is a callback query
+        if 'callback_query' in data:
+            callback_query = data['callback_query']
+            chat_id = callback_query['message']['chat']['id']
+            callback_data = callback_query['data']
+            print(f"Callback query from chat_id {chat_id} with data: {callback_data}")
 
-        # Handle /start command
-        if text == '/start':
-            add_chat_id(chat_id)
-            send_telegram_message(chat_id, "Hello! Welcome to the bot. You'll receive a quiz daily!")
-        # Handle /getAnswer command
-        elif text == '/getanswer':
-            answer = get_last_quiz_answer(chat_id)
-            send_telegram_message(chat_id, answer)
-        else:
-            result = process_user_answer(chat_id, text)
-            send_telegram_message(chat_id, result)
+            if callback_data == '/getAnswer':
+                answer = get_last_quiz_answer(chat_id)
+                send_telegram_message(chat_id, answer)
 
-        return Response("success", status=200)
+            # Acknowledge the callback query
+            callback_id = callback_query['id']
+            url = f"https://api.telegram.org/bot{TOKEN}/answerCallbackQuery"
+            response = requests.post(url, json={"callback_query_id": callback_id})
+            if response.status_code != 200:
+                print(f"Failed to acknowledge callback query: {response.text}")
+            else:
+                print(f"Callback query acknowledged successfully: {response.text}")
+
+            return Response("success", status=200)
+
+        # Handle regular messages
+        if 'message' in data:
+            chat_id = data['message']['chat']['id']
+            text = data['message'].get('text', '').strip().lower()
+
+            if text == '/start':
+                add_chat_id(chat_id)
+                send_welcome_quiz(chat_id)
+                send_telegram_message(chat_id, "Hello! Welcome to the bot. You'll receive a quiz daily!")
+            elif text == '/getAnswer':
+                answer = get_last_quiz_answer(chat_id)
+                send_telegram_message(chat_id, answer)
+            else:
+                result = process_user_answer(chat_id, text)
+                send_telegram_message(chat_id, result)
+
+            return Response("success", status=200)
+
+        return Response("Invalid request", status=400)
     else:
         return Response("GET method not allowed", status=405)
 
-@app.route('/callback', methods=['POST'])
-def handle_callback_query():
+def send_welcome_quiz(chat_id):
     """
-    Handle inline button callbacks (e.g., /getAnswer button).
+    Send a predefined welcoming quiz to the user.
     """
-    data = request.get_json()
-    print(f"Callback data received: {data}")  # Log the full callback query
+    try:
+        # Define the fixed welcome quiz
+        welcome_quiz_question = "What is 5 + 3?"
+        welcome_quiz_answer = "8"
 
-    if 'callback_query' in data:
-        callback_query = data['callback_query']
-        chat_id = callback_query['message']['chat']['id']
-        callback_data = callback_query['data']
-        print(f"Chat ID: {chat_id}, Callback Data: {callback_data}")  # Log the extracted information
+        # Send the welcoming quiz question
+        send_telegram_message(
+            chat_id,
+            f"Welcoming Quiz: {welcome_quiz_question}",
+            include_get_answer_button=True
+        )
 
-        if callback_data == "/getAnswer":
-            answer = get_last_quiz_answer(chat_id)
-            send_telegram_message(chat_id, answer)
+        # Track the quiz_id as "welcome" in the user's data
+        user_last_quiz.put_item(Item={"chat_id": chat_id, "quiz_id": "welcome"})
 
-        # Respond to Telegram to acknowledge the callback
-        callback_id = callback_query['id']
-        url = f"https://api.telegram.org/bot{TOKEN}/answerCallbackQuery"
-        response = requests.post(url, json={"callback_query_id": callback_id})
-        print(f"Callback acknowledgment response: {response.text}")  # Debug acknowledgment
-
-    return Response("success", status=200)
+    except Exception as e:
+        print(f"Error sending welcome quiz: {str(e)}")
 
 def send_animation(chat_id, animation_url):
     """
@@ -78,7 +99,7 @@ def send_animation(chat_id, animation_url):
         "chat_id": chat_id,
         "animation": animation_url
     }
-    response = requests.post(url, json=payload)
+    response = requests.post(url, data=payload)
 
     if response.status_code != 200:
         print(f"Failed to send animation: {response.text}")
@@ -100,6 +121,13 @@ def process_user_answer(chat_id, user_answer):
 
         # Fetch the correct answer from DynamoDB
         quiz_id = user_data.get('quiz_id')
+        if quiz_id == "welcome":
+            correct_answer = "8"  # Predefined answer for the welcome quiz
+            if check_answer(user_answer, correct_answer):
+                return "Correct! Well done! Please wait for tomorrow's quiz!"
+            else:
+                return "Incorrect! You can try again or click the button below to see the correct answer."
+
         quiz_data = quiz_table.get_item(Key={"quiz_id": str(quiz_id)}).get('Item', {})
 
         if not quiz_data:
@@ -139,29 +167,38 @@ def send_daily_quiz():
     """
     Send the daily quiz to all users and store the quiz_id for each user.
     """
+    import random
+
+def send_daily_quiz():
+    """
+    Send the same random daily quiz to all users and update the last sent quiz ID for each user.
+    """
     try:
+        # Fetch all quizzes from DynamoDB
+        response = quiz_table.scan()
+        all_quizzes = response.get('Items', [])
         
-        # Fetch the latest quiz from DynamoDB (you can adjust the logic as needed)
-        response = quiz_table.scan(Limit=1)  # Assume the latest quiz is the first item
-        quiz_data = response['Items'][0] if response['Items'] else None
-        
-        if not quiz_data:
-            print("No quiz available to send.")
+        if not all_quizzes:
+            print("No quizzes available in the database.")
             return
+
+        # Select a random quiz for today
+        random_quiz = random.choice(all_quizzes)
+        quiz_id = random_quiz['quiz_id']
+        question = random_quiz['question']
         
-        quiz_id = quiz_data['quiz_id']
-        question = quiz_data['question']
-        
-        # Replace this with your actual user list logic
+        # Fetch all chat IDs
         all_chat_ids = fetch_all_chat_ids()
 
         for chat_id in all_chat_ids:
             # Send the quiz to the user
-            send_telegram_message(chat_id, f"Today's Quiz: {question}")
-            # Save the last quiz_id for the user
+            send_telegram_message(chat_id, f"Today's Quiz: {question}", include_get_answer_button=True)
             
+            # Update the user's last sent quiz ID in the database
             user_last_quiz.put_item(Item={"chat_id": chat_id, "quiz_id": str(quiz_id)})
-            
+
+        print(f"Quiz ID {quiz_id} has been sent to all users.")
+    
     except Exception as e:
         print(f"Error sending daily quiz: {str(e)}")
 
@@ -171,25 +208,19 @@ def get_last_quiz_answer(chat_id):
     """
     try:
         # Get the last quiz_id for the user
-        print("qqqqqqqqqqq")
         response = user_last_quiz.get_item(Key={"chat_id": str(chat_id)})
-        print("wwwwwwwwww")
         user_data = response.get('Item', {})
-        print("eeeeeeeee")
+        
         if not user_data:
-            print("rrrrrrrrr")
             return "No quiz has been sent to you yet. Please wait for the next quiz."
-        print("ttttttttt")
+       
         # Fetch the quiz from DynamoDB
         quiz_id = user_data.get('quiz_id')
-        print("yyyyyyyyy")
         quiz_data = quiz_table.get_item(Key={"quiz_id": str(quiz_id)}).get('Item', {})
-        print("uuuuuuuuuu")
+        
         if quiz_data:
-            print("iiiiiiiiiii")
             return f"The answer to your last quiz is: {quiz_data.get('answer', 'No answer available.')}"
         else:
-            print("oooooooooooo")
             return "Unable to retrieve the quiz answer."
     except Exception as e:
         print(f"Error fetching last quiz answer: {str(e)}")
@@ -234,16 +265,10 @@ def send_telegram_message(chat_id, text,include_get_answer_button=False):
 
     if include_get_answer_button:
         # Add an inline keyboard with a /getAnswer button
-        payload["reply_markup"] = {
-            "inline_keyboard": [
-                [
-                    {"text": "Get Answer", "callback_data": "/getAnswer"}
-                ]
-            ]
-        }
+        reply_markup = '{"inline_keyboard": [[{"text": "Get Answer", "callback_data": "/getAnswer"}]]}'
+        payload['reply_markup'] = reply_markup  # Send as a string
 
-    response = requests.post(url, json=payload)
-
+    response = requests.post(url, data=payload)
     if response.status_code != 200:
         print(f"Failed to send message: {response.text}")
     else:
@@ -251,7 +276,7 @@ def send_telegram_message(chat_id, text,include_get_answer_button=False):
 
 # Initialize APScheduler
 scheduler = BackgroundScheduler()
-scheduler.add_job(send_daily_quiz, 'cron', hour=13, minute=13)  # Schedule at 9:00 AM daily
+scheduler.add_job(send_daily_quiz, 'cron', hour=16, minute=38)  # Schedule at 9:00 AM daily
 scheduler.start()
 
 if __name__ == '__main__':
