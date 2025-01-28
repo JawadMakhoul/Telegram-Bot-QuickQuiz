@@ -353,7 +353,7 @@ def send_telegram_message(chat_id, text,include_get_answer_button=False, include
 
 # Initialize APScheduler
 scheduler = BackgroundScheduler()
-scheduler.add_job(send_daily_quiz, 'cron', hour=10, minute=1)  # Schedule at 9:00 AM daily
+scheduler.add_job(send_daily_quiz, 'cron', hour=10, minute=20)  # Schedule at 9:00 AM daily
 scheduler.start()
 
 if __name__ == '__main__':

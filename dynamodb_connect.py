@@ -29,6 +29,7 @@ def connect_to_dynamodb_chatIDsTable():
     except Exception as e:
         print(f"Error connecting to DynamoDB: {e}")
         return None
+    
 if __name__ == "__main__":
     connect_to_dynamodb_quizTable
     connect_to_dynamodb_userLastQuizTable
