@@ -10,3 +10,8 @@ Features 🧠
 	* 🚪 Leave the Bot: Users can gracefully exit by clicking /exit and receive a sad goodbye message.
 	* 🎨 Fun Animations: Enjoy GIFs for correct answers, wrong answers, welcomes, and goodbyes.
 	* 🔢 Randomized Quizzes: Each day features a random quiz that hasn’t been shown before.
+
+
+ t’s easy to join:
+	Just click this link to start 👉 https://t.me/ChallMeBot
+
